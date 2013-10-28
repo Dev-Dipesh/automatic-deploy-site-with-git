@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Automatic-deploy-your-site-with-git by Dev-Dipesh</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/Dev-Dipesh/automatic-deploy-site-with-git">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/Dev-Dipesh/automatic-deploy-site-with-git/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/Dev-Dipesh/automatic-deploy-site-with-git/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Automatic-deploy-your-site-with-git</h1>
+          <p></p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/Dev-Dipesh">Dev-Dipesh</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h2>
+<a name="difficulty-level" class="anchor" href="#difficulty-level"><span class="octicon octicon-link"></span></a>Difficulty level</h2>
+
+<p>Intermediate</p>
+
+<hr><h2>
+<a name="skills-required" class="anchor" href="#skills-required"><span class="octicon octicon-link"></span></a>Skills Required</h2>
+
+<ul>
+<li>Knowledge of working on remote
+ repositories (github / bitbucket etc)
+and on cloud server (Rackspace cloud
+/ Amazon EC2 etc). </li>
+<li>Apache </li>
+<li>PHP</li>
+</ul><hr><h2>
+<a name="prior-requirements" class="anchor" href="#prior-requirements"><span class="octicon octicon-link"></span></a>Prior Requirements</h2>
+
+<ul>
+<li>you have a local git repo</li>
+<li>with an online remote repository (github / bitbucket etc)</li>
+<li>and a cloud server (Rackspace cloud / Amazon EC2 etc)
+
+<ul>
+<li>your (PHP) scripts are served from /var/www/html/</li>
+<li>your webpages are executed by apache</li>
+<li>apache's home directory is /var/www/</li>
+</ul>
+</li>
+</ul><p><strong>(This describes a pretty standard apache setup on Redhat / Ubuntu / CentOS / Amazon AMI etc) you should be able to do the same with Java, Perl, RoR, JSP etc. however you'll need to recreate the (rather simple) PHP script.</strong></p>
+
+<p><code>git</code>, <code>rsync</code>, and <code>tar</code> binaries are required on the server that's running the script (server machine).</p>
+
+<p>Also, the system user that's running PHP needs to have the right ssh keys to access the remote repository (If it's a private repo) and have the required permissions to update the files on the server machine.</p>
+
+<hr><h1>
+<a name="1---on-your-local-machine" class="anchor" href="#1---on-your-local-machine"><span class="octicon octicon-link"></span></a>1 - On your local machine</h1>
+
+<p><em>Here we add the deployment script and push it to the origin, the deployment script runs git commands to PULL from the origin thus updating your server</em></p>
+
+<h2>
+<a name="grab-a-deployment-script-for-your-site" class="anchor" href="#grab-a-deployment-script-for-your-site"><span class="octicon octicon-link"></span></a>Grab a deployment script for your site</h2>
+
+<p><strong><a href="https://gist.github.com/Dev-Dipesh/6442000">deploy.php</a></strong></p>
+
+<h2>
+<a name="add-commit-and-push-this-to-github" class="anchor" href="#add-commit-and-push-this-to-github"><span class="octicon octicon-link"></span></a>Add, commit and push this to github</h2>
+
+<pre><code>git add deploy.php
+git commit -m 'Added the git deployment script'
+git push -u origin master
+</code></pre>
+
+<hr><h1>
+<a name="2---on-your-server" class="anchor" href="#2---on-your-server"><span class="octicon octicon-link"></span></a>2 - On your server</h1>
+
+<p><em>Here we install and setup git on the server, we also create an SSH key so the server can talk to the origin without using passwords etc</em></p>
+
+<h2>
+<a name="install-git" class="anchor" href="#install-git"><span class="octicon octicon-link"></span></a>Install git...</h2>
+
+<p>After you've installed git, make sure it's a relatively new version - old scripts quickly become problematic as github / bitbucket / whatever will have the latests and greatest, if you don't have a recent version you'll need to figure out how to upgrade it :-)</p>
+
+<pre><code>git --version
+</code></pre>
+
+<h3>
+<a name="on-centos-56" class="anchor" href="#on-centos-56"><span class="octicon octicon-link"></span></a>...on CentOS 5.6</h3>
+
+<pre><code># Add a nice repo
+rpm -Uvh http://repo.webtatic.com/yum/centos/5/latest.rpm
+# Install git
+yum install --enablerepo=webtatic git-all
+</code></pre>
+
+<h3>
+<a name="using-generic-yum" class="anchor" href="#using-generic-yum"><span class="octicon octicon-link"></span></a>...using generic yum</h3>
+
+<pre><code>sudo yum install git-core
+</code></pre>
+
+<h2>
+<a name="setup-git" class="anchor" href="#setup-git"><span class="octicon octicon-link"></span></a>Setup git</h2>
+
+<pre><code>git config --global user.name "Server"
+git config --global user.email "server@server.com"
+</code></pre>
+
+<h2>
+<a name="create-an-ssh-directory-for-the-apache-user" class="anchor" href="#create-an-ssh-directory-for-the-apache-user"><span class="octicon octicon-link"></span></a>Create an ssh directory for the apache user</h2>
+
+<pre><code>sudo mkdir /var/www/.ssh
+sudo chown -R apache:apache /var/www/.ssh/
+</code></pre>
+
+<h2>
+<a name="generate-a-deploy-key-for-apache-user" class="anchor" href="#generate-a-deploy-key-for-apache-user"><span class="octicon octicon-link"></span></a>Generate a deploy key for apache user</h2>
+
+<pre><code>sudo -Hu apache ssh-keygen -t rsa # choose "no passphrase"
+sudo cat /var/www/.ssh/id_rsa.pub
+</code></pre>
+
+<hr><h1>
+<a name="3---on-your-origin-github--bitbucket" class="anchor" href="#3---on-your-origin-github--bitbucket"><span class="octicon octicon-link"></span></a>3 - On your origin (github / bitbucket)</h1>
+
+<p><em>Here we add the SSH key to the origin to allow your server to talk without passwords. In the case of GitHub we also setup a post-receive hook which will automatically call the deploy URL thus triggering a PULL request from the server to the origin</em></p>
+
+<h3>
+<a name="github" class="anchor" href="#github"><span class="octicon octicon-link"></span></a>GitHub</h3>
+
+<ol>
+<li>Go to <code>https://github.com/USERNAME/REPOSITORY/settings/keys</code> and add your server SSH key (only needed for private repositories)</li>
+<li>Go to <code>https://github.com/USERNAME/REPOSITORY/admin/hooks</code>
+</li>
+<li>Select the <strong>WebHook URLs</strong> service hook</li>
+<li>Enter the URL to your deployment script e.g. <code>http://example.com/deploy.php?sat=YourSecretAccessTokenFromDeployFile</code>
+</li>
+<li>Click <strong>Update Settings</strong>
+</li>
+</ol><h3>
+<a name="bitbucket" class="anchor" href="#bitbucket"><span class="octicon octicon-link"></span></a>Bitbucket</h3>
+
+<ol>
+<li>Go to <code>https://bitbucket.org/USERNAME/REPOSITORY/admin/deploy-keys</code> and add your server SSH key (only needed for private repositories)</li>
+<li>Go to <code>https://bitbucket.org/USERNAME/REPOSITORY/admin/services</code>
+</li>
+<li>Add <strong>POST</strong> service</li>
+<li>Enter the URL to your deployment script e.g. <code>http://example.com/deploy.php?sat=YourSecretAccessTokenFromDeployFile</code>
+</li>
+<li>Click <strong>Save</strong>
+</li>
+</ol><h3>
+<a name="generic-git" class="anchor" href="#generic-git"><span class="octicon octicon-link"></span></a>Generic GIT</h3>
+
+<ol>
+<li>Configure the SSH keys</li>
+<li>Add a executable <code>.git/hooks/post_receive</code> script that calls the script e.g.</li>
+</ol><div class="highlight highlight-sh"><pre><span class="c">#!/bin/sh</span>
+<span class="nb">echo</span> <span class="s2">"Triggering the code deployment ..."</span>
+wget -q -O /dev/null http://example.com/deploy.php?sat<span class="o">=</span>YourSecretAccessTokenFromDeployFile
+</pre></div>
+
+<hr><h1>
+<a name="4---on-the-server" class="anchor" href="#4---on-the-server"><span class="octicon octicon-link"></span></a>4 - On the Server</h1>
+
+<p><em>Here we clone the origin repo into a chmodded /var/www/html folder</em></p>
+
+<h2>
+<a name="pull-from-origin" class="anchor" href="#pull-from-origin"><span class="octicon octicon-link"></span></a>Pull from origin</h2>
+
+<pre><code>sudo chown -R apache:apache /var/www/html
+sudo -Hu apache git clone git@github.com:you/server.git /var/www/html
+</code></pre>
+
+<h1>
+<a name="rejoice" class="anchor" href="#rejoice"><span class="octicon octicon-link"></span></a>Rejoice!</h1>
+
+<p>Now you're ready to go :-)</p>
+
+<hr><h2>
+<a name="some-notes" class="anchor" href="#some-notes"><span class="octicon octicon-link"></span></a>Some notes</h2>
+
+<ul>
+<li>Navigate the the deployment script to trigger a pull and see the output:
+
+<ul>
+<li><a href="http://server.com/deploy.php">http://server.com/deploy.php</a></li>
+<li><strong><em>this is useful for debugging too ;-)</em></strong></li>
+<li>When you push to GitHub your site will automatically ping the above url (and pull your code)</li>
+<li>When you push to Bitbucket you will need to manually ping the above url</li>
+<li>It would be trivial to setup another repo on your server for different branches (develop, release-candidate etc) - repeat most of the steps but checkout a branch after pulling the repo down</li>
+</ul>
+</li>
+</ul><hr><h2>
+<a name="guides" class="anchor" href="#guides"><span class="octicon octicon-link"></span></a>GUIDES</h2>
+
+<p>Here are more guides from me</p>
+
+<ul>
+<li><a href="https://github.com/Dev-Dipesh/Guide-twitter-bootstrap">Twitter Bootstrap</a></li>
+<li><a href="https://github.com/Dev-Dipesh/Guide-to-GIT-patch-mode">GITHub Patch Mode: git add -p: The most powerful git feature you're not using yet</a></li>
+</ul><h2>
+<a name="sources" class="anchor" href="#sources"><span class="octicon octicon-link"></span></a>Sources</h2>
+
+<ul>
+<li>
+<a href="https://gist.github.com/1105010">Build auto-deploy with php and git(hub) on an EC2 Amazon AMI instance</a> - who in turn referenced:
+
+<ul>
+<li>
+<a href="https://github.com/rsms/ec2-webapp/blob/master/INSTALL.md#readme">ec2-webapp / INSTALL.md</a>
+
+<ul>
+<li><a href="http://writing.markchristian.org/2011/03/10/how-to-deploy-your-code-from-github-automatically.html">How to deploy your code from GitHub automatically</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
